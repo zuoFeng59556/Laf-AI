@@ -1,6 +1,7 @@
 import type { AxiosProgressEvent, GenericAbortSignal } from 'axios'
 import { post } from '@/utils/request'
 import { useAuthStore, useSettingStore } from '@/store'
+import { log } from 'console'
 
 export function fetchChatAPI<T = any>(
   prompt: string,
@@ -42,7 +43,7 @@ export function fetchChatAPIProcess<T = any>(
       temperature: settingStore.temperature,
       top_p: settingStore.top_p,
     }
-  }
+	}
 
   return post<T>({
     url: '/chat-process',
