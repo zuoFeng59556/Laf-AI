@@ -217,25 +217,30 @@ async function onRegenerate(index: number) {
   try {
     let lastText = "";
     const fetchChatAPIOnce = async () => {
-      await fetchChatAPIProcess<Chat.ConversationResponse>({
-        prompt: message,
-        options,
-        signal: controller.signal,
+      await axios({
+        url: "https://jyf6wk.laf.dev/translater",
+        method: "post",
+        data: { message, parentMessageId: parentMessageId.value },
+        responseType: "text",
+        headers: {
+          // Authorization: `Bearer ${token}`,
+        },
+        cancelToken: source.token,
         onDownloadProgress: ({ event }) => {
           const xhr = event.target;
           const { responseText } = xhr;
-          // Always process the final line
-          const lastIndex = responseText.lastIndexOf("\n", responseText.length - 2);
-          let chunk = responseText;
-          if (lastIndex !== -1) chunk = responseText.substring(lastIndex);
+          const parts = responseText.split("--!");
+          let chunk = parts[0];
+          parentMessageId.value = parts[1];
+
           try {
-            const data = JSON.parse(chunk);
-            updateChat(+uuid, index, {
+            const data = chunk;
+            updateChat(+uuid, dataSources.value.length - 1, {
               dateTime: new Date().toLocaleString(),
               text: lastText + (data ?? ""),
               inversion: false,
               error: false,
-              loading: true,
+              loading: false,
               conversationOptions: {
                 conversationId: data.conversationId,
                 parentMessageId: data.id,
@@ -249,12 +254,15 @@ async function onRegenerate(index: number) {
               message = "";
               return fetchChatAPIOnce();
             }
+
+            scrollToBottomIfAtBottom();
           } catch (error) {
             //
           }
         },
       });
-      updateChatSome(+uuid, index, { loading: false });
+
+      updateChatSome(+uuid, dataSources.value.length - 1, { loading: false });
     };
     await fetchChatAPIOnce();
   } catch (error: any) {
@@ -395,7 +403,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col mx-auto w-4/5 h-full">
+  <div class="flex flex-col mx-auto lg:w-3/5 h-full">
     <main class="flex-1 overflow-hidden">
       <div id="scrollRef" ref="scrollRef" class="h-full overflow-hidden overflow-y-auto">
         <div
