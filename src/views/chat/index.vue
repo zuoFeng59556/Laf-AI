@@ -4,18 +4,16 @@ import type { Ref } from "vue";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
-import { NAutoComplete, NButton, NInput, useDialog, useMessage } from "naive-ui";
-import html2canvas from "html2canvas";
+import { NAutoComplete, NButton, NInput, useDialog } from "naive-ui";
 import { Message } from "./components";
 import { useScroll } from "./hooks/useScroll";
 import { useChat } from "./hooks/useChat";
 import { useUsingContext } from "./hooks/useUsingContext";
-import HeaderComponent from "./components/Header/index.vue";
 import { HoverButton, SvgIcon } from "@/components/common";
 import { useBasicLayout } from "@/hooks/useBasicLayout";
 import { useChatStore, usePromptStore } from "@/store";
-import { fetchChatAPIProcess } from "@/api";
 import { t } from "@/locales";
+import Header from "@/components/header.vue";
 
 let controller = new AbortController();
 
@@ -403,8 +401,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col mx-auto lg:w-3/5 h-full">
-    <main class="flex-1 overflow-hidden">
+  <div class="flex flex-col h-full">
+    <Header />
+    <main class="flex-1 mx-auto lg:w-3/5 overflow-hidden">
       <div id="scrollRef" ref="scrollRef" class="h-full overflow-hidden overflow-y-auto">
         <div
           id="image-wrapper"
@@ -446,7 +445,7 @@ onUnmounted(() => {
       </div>
     </main>
     <footer :class="footerClass">
-      <div class="w-full= max-w-screen-xl m-auto">
+      <div class="w-full= max-w-screen-xl mx-auto lg:w-3/5 m-auto">
         <div class="flex items-center justify-between space-x-3">
           <HoverButton @click="handleClear">
             <span class="text-xl text-[#4f555e] dark:text-white">
