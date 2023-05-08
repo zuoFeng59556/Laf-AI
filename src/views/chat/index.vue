@@ -13,7 +13,7 @@ import { HoverButton, SvgIcon } from "@/components/common";
 import { useBasicLayout } from "@/hooks/useBasicLayout";
 import { useChatStore, usePromptStore } from "@/store";
 import { t } from "@/locales";
-import Header from "@/components/header.vue";
+import Header from "@/components/Header.vue";
 
 let controller = new AbortController();
 
