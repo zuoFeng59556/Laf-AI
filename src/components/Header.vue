@@ -109,7 +109,7 @@ function select(e: number) {
 //点击充值
 async function openCode() {
   let num = 0;
-  if (indexUp.value == 0) num = 100;
+  if (indexUp.value == 0) num = 2000;
   if (indexUp.value == 1) num = 5000;
   if (indexUp.value == 2) num = 100000;
 
@@ -243,7 +243,7 @@ function logout() {
           :class="indexUp === 1 ? 'box-card' : 'boxCard'"
           class="box-card"
         >
-          <div class="useNumber">1千次</div>
+          <div class="useNumber">1500次</div>
           <div class="money">
             <span class="sign">￥</span>
             <span class="number">50</span>
@@ -255,7 +255,7 @@ function logout() {
           :class="indexUp === 2 ? 'box-card' : 'boxCard'"
           class="box-card"
         >
-          <div class="useNumber">2万次</div>
+          <div class="useNumber">5万次</div>
           <div class="money">
             <span class="sign">￥</span>
             <span class="number">1000</span>
