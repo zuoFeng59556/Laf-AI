@@ -38,7 +38,7 @@ function deleteChat() {
 }
 
 function getUserInfo() {
-  const userInfo = JSON.parse(localStorage.getItem("user"));
+  const userInfo = JSON.parse(localStorage.getItem("user") as string);
   userName.value = userInfo?.phone.slice(-4);
 }
 

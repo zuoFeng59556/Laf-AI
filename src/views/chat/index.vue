@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import axios from "axios";
+import axios, { CancelTokenSource } from "axios";
 import type { Ref } from "vue";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
@@ -44,7 +44,7 @@ const prompt = ref<string>("");
 const parentMessageId = ref<string>("");
 const loading = ref<boolean>(false);
 const inputRef = ref<Ref | null>(null);
-const source = axios.CancelToken.source();
+let source: CancelTokenSource | null = null;
 const message = useMessage();
 
 // 添加PromptStore
@@ -109,6 +109,7 @@ async function onConversation() {
   try {
     let lastText = "";
     const token = localStorage.getItem("access_token");
+    source = axios.CancelToken.source();
     const fetchChatAPIOnce = async () => {
       await axios({
         url: "https://jyf6wk.laf.dev/send",
@@ -118,7 +119,7 @@ async function onConversation() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        cancelToken: source.token,
+        cancelToken: source?.token,
         onDownloadProgress: ({ event }) => {
           const xhr = event.target;
           const { responseText } = xhr;
@@ -236,7 +237,7 @@ async function onRegenerate(index: number) {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        cancelToken: source.token,
+        cancelToken: source?.token,
         onDownloadProgress: ({ event }) => {
           const xhr = event.target;
           const { responseText } = xhr;
@@ -347,8 +348,8 @@ function handleEnter(event: KeyboardEvent) {
 // 终止流式返回
 function handleStop() {
   if (loading.value) {
-    source.cancel("请求被用户中断");
     loading.value = false;
+    source?.cancel("请求被用户中断");
   }
 }
 
