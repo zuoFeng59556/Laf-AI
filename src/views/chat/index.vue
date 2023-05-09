@@ -4,7 +4,7 @@ import type { Ref } from "vue";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
-import { NAutoComplete, NButton, NInput, useDialog } from "naive-ui";
+import { NAutoComplete, NButton, NInput, useDialog, useMessage } from "naive-ui";
 import { Message } from "./components";
 import { useScroll } from "./hooks/useScroll";
 import { useChat } from "./hooks/useChat";
@@ -14,6 +14,10 @@ import { useBasicLayout } from "@/hooks/useBasicLayout";
 import { useChatStore, usePromptStore } from "@/store";
 import { t } from "@/locales";
 import Header from "@/components/Header.vue";
+import { cloud } from "@/api/lafAPI";
+import { useMyStore } from "@/store";
+
+const myStore = useMyStore(); // 获取到我创建的store
 
 let controller = new AbortController();
 
@@ -41,6 +45,7 @@ const parentMessageId = ref<string>("");
 const loading = ref<boolean>(false);
 const inputRef = ref<Ref | null>(null);
 const source = axios.CancelToken.source();
+const message = useMessage();
 
 // 添加PromptStore
 const promptStore = usePromptStore();
@@ -52,9 +57,12 @@ const { promptList: promptTemplate } = storeToRefs<any>(promptStore);
 dataSources.value.forEach((item, index) => {
   if (item.loading) updateChatSome(+uuid, index, { loading: false });
 });
+// ================================================created================================================
+// ================================================methods================================================
 
 // 监听发送消息
-function handleSubmit() {
+async function handleSubmit() {
+  if (!localStorage.getItem("access_token")) return message.error("请先登录哦～");
   onConversation();
 }
 
@@ -100,14 +108,15 @@ async function onConversation() {
   // 请求接口获取回复信息
   try {
     let lastText = "";
+    const token = localStorage.getItem("access_token");
     const fetchChatAPIOnce = async () => {
       await axios({
-        url: "https://jyf6wk.laf.dev/translater",
+        url: "https://jyf6wk.laf.dev/send",
         method: "post",
         data: { message, parentMessageId: parentMessageId.value },
         responseType: "text",
         headers: {
-          // Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         cancelToken: source.token,
         onDownloadProgress: ({ event }) => {
@@ -144,6 +153,8 @@ async function onConversation() {
             //
           }
         },
+      }).then(() => {
+        getAmount();
       });
 
       updateChatSome(+uuid, dataSources.value.length - 1, { loading: false });
@@ -214,14 +225,16 @@ async function onRegenerate(index: number) {
 
   try {
     let lastText = "";
+    const token = localStorage.getItem("access_token");
+
     const fetchChatAPIOnce = async () => {
       await axios({
-        url: "https://jyf6wk.laf.dev/translater",
+        url: "https://jyf6wk.laf.dev/send",
         method: "post",
         data: { message, parentMessageId: parentMessageId.value },
         responseType: "text",
         headers: {
-          // Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         cancelToken: source.token,
         onDownloadProgress: ({ event }) => {
@@ -258,8 +271,9 @@ async function onRegenerate(index: number) {
             //
           }
         },
+      }).then(() => {
+        getAmount();
       });
-
       updateChatSome(+uuid, dataSources.value.length - 1, { loading: false });
     };
     await fetchChatAPIOnce();
@@ -390,6 +404,13 @@ const footerClass = computed(() => {
   return classes;
 });
 
+// 获取用户剩余次数
+async function getAmount() {
+  if (!localStorage.getItem("access_token")) return;
+  const res = await cloud.invoke("get-amount");
+  myStore.changeAmount(res.amount);
+}
+
 onMounted(() => {
   scrollToBottom();
   if (inputRef.value && !isMobile.value) inputRef.value?.focus();
@@ -402,9 +423,13 @@ onUnmounted(() => {
 
 <template>
   <div class="flex flex-col h-full">
-    <Header />
-    <main class="flex-1 mx-auto lg:w-3/5 overflow-hidden">
-      <div id="scrollRef" ref="scrollRef" class="h-full overflow-hidden overflow-y-auto">
+    <Header amount="2008" />
+    <main class="flex-1 mx-auto lg:w-3/5 w-full overflow-hidden">
+      <div
+        id="scrollRef"
+        ref="scrollRef"
+        class="h-full w-full overflow-hidden overflow-y-auto"
+      >
         <div
           id="image-wrapper"
           class="w-full max-w-screen-xl m-auto dark:bg-[#101014]"

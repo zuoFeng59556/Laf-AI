@@ -3,7 +3,7 @@ import { getLocalState, setLocalState } from './helper'
 import { router } from '@/router'
 
 export const useChatStore = defineStore('chat-store', {
-  state: (): Chat.ChatState => getLocalState(),
+	state: (): Chat.ChatState => getLocalState(),
 
   getters: {
     getChatHistoryByCurrentActive(state: Chat.ChatState) {
@@ -73,7 +73,13 @@ export const useChatStore = defineStore('chat-store', {
         this.active = uuid
         this.reloadRoute(uuid)
       }
-    },
+		},
+
+		async deleteAllHistory() {
+			this.history = []
+			this.chat = []
+			this.active = null
+		},
 
     async setActive(uuid: number) {
       this.active = uuid
