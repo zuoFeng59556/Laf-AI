@@ -57,8 +57,8 @@ const { promptList: promptTemplate } = storeToRefs<any>(promptStore);
 dataSources.value.forEach((item, index) => {
   if (item.loading) updateChatSome(+uuid, index, { loading: false });
 });
-// ================================================created================================================
-// ================================================methods================================================
+
+// ================================================需要修改部分================================================
 
 // 监听发送消息
 async function handleSubmit() {
@@ -66,6 +66,7 @@ async function handleSubmit() {
   onConversation();
 }
 
+// 请求接口发送消息
 async function onConversation() {
   let message = prompt.value;
 
@@ -110,6 +111,7 @@ async function onConversation() {
     let lastText = "";
     const token = localStorage.getItem("access_token");
     source = axios.CancelToken.source();
+
     const fetchChatAPIOnce = async () => {
       await axios({
         url: "https://jyf6wk.laf.dev/send",
@@ -199,6 +201,7 @@ async function onConversation() {
   }
 }
 
+// 重新回答
 async function onRegenerate(index: number) {
   if (loading.value) return;
 
@@ -302,6 +305,21 @@ async function onRegenerate(index: number) {
   }
 }
 
+// 终止流式返回
+function handleStop() {
+  if (loading.value) {
+    loading.value = false;
+    source?.cancel("请求被用户中断");
+  }
+}
+
+// 获取用户剩余次数
+async function getAmount() {
+  if (!localStorage.getItem("access_token")) return;
+  const res = await cloud.invoke("get-amount");
+  myStore.changeAmount(res.amount);
+}
+
 function handleDelete(index: number) {
   if (loading.value) return;
 
@@ -342,14 +360,6 @@ function handleEnter(event: KeyboardEvent) {
       event.preventDefault();
       handleSubmit();
     }
-  }
-}
-
-// 终止流式返回
-function handleStop() {
-  if (loading.value) {
-    loading.value = false;
-    source?.cancel("请求被用户中断");
   }
 }
 
@@ -404,13 +414,6 @@ const footerClass = computed(() => {
     ];
   return classes;
 });
-
-// 获取用户剩余次数
-async function getAmount() {
-  if (!localStorage.getItem("access_token")) return;
-  const res = await cloud.invoke("get-amount");
-  myStore.changeAmount(res.amount);
-}
 
 onMounted(() => {
   scrollToBottom();
